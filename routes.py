@@ -29,14 +29,16 @@ def shorten():
 @routes.route('/shorten/<shorten_name>', methods=['PUT', 'GET', 'DELETE'])
 def handle_shorten_by_id(shorten_name):
     if request.method == 'GET':
-        db.session.query(URL).filter_by(short_url=shorten_name).first()
+        shorten = db.session.query(URL).filter_by(short_url=shorten_name).first()
+        shorten.access_count +=1
+        db.session.commit()
         return jsonify({
             'id': shorten.id,
             'original_url': shorten.original_url,
             'created_at': shorten.created_at,
             'updated_at': shorten.updated_at,
             'access_count': shorten.access_count
-        })
+        }), 200
 
 @routes.route('/shorten/<shorten_name>/<stats>', methods=['GET'])
 def get_stats(shorten_name, stats):
