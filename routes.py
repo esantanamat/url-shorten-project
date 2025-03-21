@@ -1,16 +1,8 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, redirect, request, jsonify
 from db import db
-from functions import generate_short_url
+from functions import fetch_url, generate_short_url
 from models import URL
 routes = Blueprint("routes", __name__)
-
-@routes.route('/')
-def home():
-    return "Hello from Home :D "
-
-@routes.route('/hello/<name>')
-def hello_name(name):
-    return f'Hello {name}!'
 
 @routes.route('/shorten', methods=['POST'])
 def shorten(): 
@@ -28,8 +20,10 @@ def shorten():
 
 @routes.route('/shorten/<shorten_name>', methods=['PUT', 'GET', 'DELETE'])
 def handle_shorten_by_id(shorten_name):
+    shorten = fetch_url(shorten_name)
+    if not shorten:
+        return jsonify({'message': 'the shorten url does not exist'}), 400
     if request.method == 'GET':
-        shorten = db.session.query(URL).filter_by(short_url=shorten_name).first()
         shorten.access_count +=1
         db.session.commit()
         return jsonify({
@@ -39,9 +33,37 @@ def handle_shorten_by_id(shorten_name):
             'updated_at': shorten.updated_at,
             'access_count': shorten.access_count
         }), 200
+    if request.method == 'PUT':
+        data = request.get_json()
+        new_url = data.get('new_url')
+        if not new_url:
+            return jsonify({'error': 'New url is required'}), 400
+        shorten.original_url = new_url
+        db.session.commit()
+        return jsonify({
+            'message': f'the url has been updated to {new_url}'
+        })
+    if request.method == 'DELETE':
+        db.session.delete(shorten)
+        db.session.commit()
+        return jsonify({'message': 'The URL has been deleted'
+        }), 200
 
-@routes.route('/shorten/<shorten_name>/<stats>', methods=['GET'])
-def get_stats(shorten_name, stats):
-    t = shorten_name
-    s = stats
-    return f"{t}, {s}"
+@routes.route('/shorten/<shorten_name>/stats', methods=['GET'])
+def get_stats(shorten_name):
+    shorten = fetch_url(shorten_name)
+    if not shorten:
+        return jsonify({'message': 'the shorten url does not exist'}), 400
+    return jsonify({
+        'access_count': shorten.access_count
+    }), 200
+
+@routes.route('/shorten/<shorten_name>/go', methods = ['GET'])
+def re_route(shorten_name):
+    shorten = fetch_url(shorten_name)
+    if not shorten:
+        return jsonify({'message': 'the shorten url does not exist'}), 400
+    if shorten:
+        return redirect(shorten.original_url)
+    else:
+        return jsonify({'message': 'mssing shorten name' }), 404
