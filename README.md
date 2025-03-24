@@ -38,22 +38,22 @@ Make sure you have the following installed:
 5. Run the flask app! It will be available at **127.0.0.1:5000**
 
 ## API Endpoints
-- Shorten URL  
+- **Shorten URL**  
   Endpoint: /shorten  
   Method: POST  
-- Get URL  
+- **Get URL**  
   Endpoint: /shorten/<shorten_name>
   Method: GET  
-- Update URL  
+- **Update URL**  
   Endpoint: /shorten/<shorten_name>
   Method: PUT  
-- Delete URL
+- **Delete URL**
   Endpoint: /shorten/<shorten_name>
   Method: DELETE  
-- Get URL stats
+- **Get URL stats**  
   Endpoint: /shorten/<shorten_name>/stats
   Method: GET   
-- Redirect to Original URL
+- **Redirect to Original URL**  
   Endpoint: /shorten/<shorten_name>/go
   Method: GET  
 ##Testing  
